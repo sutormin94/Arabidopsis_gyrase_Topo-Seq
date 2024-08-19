@@ -21,7 +21,9 @@ PWD="C:\\Users\sutor\OneDrive\ThinkPad_working\Sutor\Science\Arabidopsis_gyrase\
 Wig_track_path=os.path.join(PWD, "BK010421.1_Topo_Seq_Mock_2_S8_edt_for_rev_depth.wig")
 
 # Regions to mask.
-Regions_to_mask=[[42800, 43400], [129600, 130100], [165000, 165250]]
+# Positions of chloroplast-like origins in the A. thaliana mitochondrial genome (TAIR10.1). 
+# Due to similarity to chloroplast sequences, they acquire chloroplast reads and have artifactual increased coverage depth.
+Regions_to_mask=[[42800, 43400], [129600, 130100], [165000, 165250]] 
 
 # Output path.
 Wig_track_outpath=os.path.join(PWD, "BK010421.1_Topo_Seq_Mock_2_S8_edt_for_rev_depth_cp_ori_masked.wig")
