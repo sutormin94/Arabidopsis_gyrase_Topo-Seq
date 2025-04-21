@@ -1,0 +1,10 @@
+(((Lepidium_apetalum,Lepidium_sativum)Lepidium,((Boechera_stricta,((Arabidopsis_thaliana,Arabidopsis_lyrata)Arabidopsis,Capsella_rubella)),Crucihimalaya_lasiocarpa)),(Raphanus_sativus,Sinapis_arvensis));
+Arabidopsis_lyrata Arabidopsis_lyrata.fasta
+*Arabidopsis_thaliana Arabidopsis_thaliana.fasta
+Boechera_stricta Boechera_stricta.fasta
+Capsella_rubella Capsella_rubella.fasta
+Crucihimalaya_lasiocarpa Crucihimalaya_lasiocarpa.fasta
+Lepidium_apetalum Lepidium_apetalum.fasta
+Lepidium_sativum Lepidium_sativum.fasta
+Raphanus_sativus Raphanus_sativus.fasta
+Sinapis_arvensis Sinapis_arvensis.fasta
