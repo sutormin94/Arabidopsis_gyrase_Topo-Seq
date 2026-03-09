@@ -36,7 +36,7 @@ Sheet_name="All_genes"
 Column_name="FPKM_average"
 
 # Output path.
-Output_path=os.path.join(PWD, "Test_BK010421.1_RNA_Seq_Topo_Seq_correlation")
+Output_path=os.path.join(PWD, "Test_2_BK010421.1_RNA_Seq_Topo_Seq_correlation")
 if not os.path.isdir(Output_path):
     os.mkdir(Output_path)
 
@@ -86,8 +86,8 @@ def read_rna_seq(rna_seq_path, sheet_name, column_name):
     end_coord=list(RNA_seq_df['end'])
     FPKM_av=list(RNA_seq_df['FPKM_average'])
     product_type=list(RNA_seq_df['Product'])
-    if 'Polymerse' in RNA_seq_df.columns:
-        RNAP_type=list(RNA_seq_df['Polymerse'])
+    if 'Polymerase' in RNA_seq_df.columns:
+        RNAP_type=list(RNA_seq_df['Polymerase'])
     else:
         RNAP_type=['-']*len(product_type)
     
@@ -134,15 +134,27 @@ def factors_association_EcTopoI_RpoC(FPKM_av_ar, FE_mean_ar, wig_track_name, gen
     ##Plot data.
     fig, plot=plt.subplots(1,1,figsize=(3,2.7), dpi=100)
     for i in range(len(product_type_ar)):
-        if product_type_ar[i]=='tRNA':
-            plot.scatter(factor_1[i], factor_2[i], s=2, color='green')
-        elif product_type_ar[i]=='rRNA':
-            plot.scatter(factor_1[i], factor_2[i], s=2, color='red')
-        else:
-            if RNAP_type_ar[i]=='NEP':
-                plot.scatter(factor_1[i], factor_2[i], s=6, color='blue', marker='^')
-            else:
-                plot.scatter(factor_1[i], factor_2[i], s=2, color='blue')
+        if product_type_ar[i]=='tRNA' and RNAP_type_ar[i]=='NEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='green', marker='^')
+        elif product_type_ar[i]=='tRNA' and RNAP_type_ar[i]=='NEP/PEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='green', marker='*')
+        elif product_type_ar[i]=='tRNA' and (RNAP_type_ar[i] in ['PEP', '-']):
+            plot.scatter(factor_1[i], factor_2[i], s=2, color='green', marker='o')
+            
+        elif product_type_ar[i]=='rRNA' and RNAP_type_ar[i]=='NEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='red', marker='^')
+        elif product_type_ar[i]=='rRNA' and RNAP_type_ar[i]=='NEP/PEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='red', marker='*')
+        elif product_type_ar[i]=='rRNA' and (RNAP_type_ar[i] in ['PEP', '-']):
+            plot.scatter(factor_1[i], factor_2[i], s=2, color='red', marker='o')
+            
+        elif (product_type_ar[i] not in ['rRNA', 'tRNA']) and RNAP_type_ar[i]=='NEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='blue', marker='^')
+        elif (product_type_ar[i] not in ['rRNA', 'tRNA']) and RNAP_type_ar[i]=='NEP/PEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='blue', marker='*')
+        elif (product_type_ar[i] not in ['rRNA', 'tRNA']) and (RNAP_type_ar[i] in ['PEP', '-']):
+            plot.scatter(factor_1[i], factor_2[i], s=2, color='blue', marker='o')            
+
        
     plot.plot(xdata, fit_fn(xdata), '--k', label='y='+str(round(fit[0], 3))+'x+'+str(round(fit[1], 3)))
     plot.annotate(f'Spearman cor coef: {np.round(spearman_cor[0],3)}\np-value: {"{:.1e}".format(spearman_cor[1])}', xy=(-0.5, 4), xycoords='data', size=7)
@@ -183,15 +195,26 @@ def factors_association_EcTopoI_RpoC(FPKM_av_ar, FE_mean_ar, wig_track_name, gen
     ##Plot data.
     fig, plot=plt.subplots(1,1,figsize=(3,2.7), dpi=100)
     for i in range(len(product_type_ar)):
-        if product_type_ar[i]=='tRNA':
-            plot.scatter(factor_1[i], factor_2[i], s=2, color='green')
-        elif product_type_ar[i]=='rRNA':
-            plot.scatter(factor_1[i], factor_2[i], s=2, color='red')
-        else:
-            if RNAP_type_ar[i]=='NEP':
-                plot.scatter(factor_1[i], factor_2[i], s=6, color='blue', marker='^')
-            else:
-                plot.scatter(factor_1[i], factor_2[i], s=2, color='blue')        
+        if product_type_ar[i]=='tRNA' and RNAP_type_ar[i]=='NEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='green', marker='^')
+        elif product_type_ar[i]=='tRNA' and RNAP_type_ar[i]=='NEP/PEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='green', marker='*')
+        elif product_type_ar[i]=='tRNA' and (RNAP_type_ar[i] in ['PEP', '-']):
+            plot.scatter(factor_1[i], factor_2[i], s=2, color='green', marker='o')
+            
+        elif product_type_ar[i]=='rRNA' and RNAP_type_ar[i]=='NEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='red', marker='^')
+        elif product_type_ar[i]=='rRNA' and RNAP_type_ar[i]=='NEP/PEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='red', marker='*')
+        elif product_type_ar[i]=='rRNA' and (RNAP_type_ar[i] in ['PEP', '-']):
+            plot.scatter(factor_1[i], factor_2[i], s=2, color='red', marker='o')
+            
+        elif (product_type_ar[i] not in ['rRNA', 'tRNA']) and RNAP_type_ar[i]=='NEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='blue', marker='^')
+        elif (product_type_ar[i] not in ['rRNA', 'tRNA']) and RNAP_type_ar[i]=='NEP/PEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='blue', marker='*')
+        elif (product_type_ar[i] not in ['rRNA', 'tRNA']) and (RNAP_type_ar[i] in ['PEP', '-']):
+            plot.scatter(factor_1[i], factor_2[i], s=2, color='blue', marker='o')        
                
     plot.plot(xdata, fit_fn(xdata), '--k', label='y='+str(round(fit[0], 3))+'x+'+str(round(fit[1], 3)))
     plot.annotate(f'Spearman cor coef: {np.round(spearman_cor[0],3)}\np-value: {"{:.1e}".format(spearman_cor[1])}', xy=(-0.5, 4), xycoords='data', size=7)
@@ -233,15 +256,26 @@ def factors_association_EcTopoI_RpoC(FPKM_av_ar, FE_mean_ar, wig_track_name, gen
     ##Plot data.
     fig, plot=plt.subplots(1,1,figsize=(3,2.7), dpi=100)
     for i in range(len(product_type_ar)):
-        if product_type_ar[i]=='tRNA':
-            plot.scatter(factor_1[i], factor_2[i], s=2, color='green')
-        elif product_type_ar[i]=='rRNA':
-            plot.scatter(factor_1[i], factor_2[i], s=2, color='red')
-        else:
-            if RNAP_type_ar[i]=='NEP':
-                plot.scatter(factor_1[i], factor_2[i], s=6, color='blue', marker='^')
-            else:
-                plot.scatter(factor_1[i], factor_2[i], s=2, color='blue')        
+        if product_type_ar[i]=='tRNA' and RNAP_type_ar[i]=='NEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='green', marker='^')
+        elif product_type_ar[i]=='tRNA' and RNAP_type_ar[i]=='NEP/PEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='green', marker='*')
+        elif product_type_ar[i]=='tRNA' and (RNAP_type_ar[i] in ['PEP', '-']):
+            plot.scatter(factor_1[i], factor_2[i], s=2, color='green', marker='o')
+            
+        elif product_type_ar[i]=='rRNA' and RNAP_type_ar[i]=='NEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='red', marker='^')
+        elif product_type_ar[i]=='rRNA' and RNAP_type_ar[i]=='NEP/PEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='red', marker='*')
+        elif product_type_ar[i]=='rRNA' and (RNAP_type_ar[i] in ['PEP', '-']):
+            plot.scatter(factor_1[i], factor_2[i], s=2, color='red', marker='o')
+            
+        elif (product_type_ar[i] not in ['rRNA', 'tRNA']) and RNAP_type_ar[i]=='NEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='blue', marker='^')
+        elif (product_type_ar[i] not in ['rRNA', 'tRNA']) and RNAP_type_ar[i]=='NEP/PEP':
+            plot.scatter(factor_1[i], factor_2[i], s=6, color='blue', marker='*')
+        elif (product_type_ar[i] not in ['rRNA', 'tRNA']) and (RNAP_type_ar[i] in ['PEP', '-']):
+            plot.scatter(factor_1[i], factor_2[i], s=2, color='blue', marker='o')       
                
     plot.plot(xdata, fit_fn(xdata), '--k', label='y='+str(round(fit[0], 3))+'x+'+str(round(fit[1], 3)))
     plot.annotate(f'Spearman cor coef: {np.round(spearman_cor[0],3)}\np-value: {"{:.1e}".format(spearman_cor[1])}', xy=(-0.5, 4), xycoords='data', size=7)
