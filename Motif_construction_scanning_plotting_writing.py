@@ -30,18 +30,22 @@ import matplotlib.pyplot as plt
 
 print('Variables to be defined:')
 
+# Chromosome ID.
+Chrosome_ID="BK010421.1"
+Chrosome_ID="AP000423.1"
+
 #Input: GCSs data, TAB.
-path_to_GCSs_files={'Cfx':   "C:\\Users\sutor\OneDrive\\ThinkPad_working\Sutor\Science\Arabidopsis_gyrase\Sequencing_results\\NUMT_masked\Separate_chromosomes_data\BK010421.1\BK010421.1_Trusted_GCSs_0.01.BroadPeak",}
+path_to_GCSs_files={'Cfx':   f"C:\\Users\sutor\OneDrive\\ThinkPad_working\Sutor\Science\Arabidopsis_gyrase\Sequencing_results\\NUMT_masked\Separate_chromosomes_data\{Chrosome_ID}\{Chrosome_ID}_Trusted_GCSs_0.01.BroadPeak",}
 
 #Input: path to the E. coli genome (source of sequences for PFM/PWM construction), FASTA.
-Genome_seq_path="C:\\Users\sutor\OneDrive\\ThinkPad_working\Sutor\Science\Arabidopsis_gyrase\Sequencing_results\\NUMT_masked\Separate_chromosomes_data\BK010421.1\BK010421.1.fasta"
+Genome_seq_path=f"C:\\Users\sutor\OneDrive\\ThinkPad_working\Sutor\Science\Arabidopsis_gyrase\Sequencing_results\\NUMT_masked\Separate_chromosomes_data\{Chrosome_ID}\{Chrosome_ID}.fasta"
 
 #Input: path to the sequence to be scanned, FASTA.
-Target_seq_path="C:\\Users\sutor\OneDrive\\ThinkPad_working\Sutor\Science\Arabidopsis_gyrase\Sequencing_results\\NUMT_masked\Separate_chromosomes_data\BK010421.1\BK010421.1.fasta"
+Target_seq_path=f"C:\\Users\sutor\OneDrive\\ThinkPad_working\Sutor\Science\Arabidopsis_gyrase\Sequencing_results\\NUMT_masked\Separate_chromosomes_data\{Chrosome_ID}\{Chrosome_ID}.fasta"
 #Input: name of the target sequence ready to be scanned.
-Target_seq_name="BK010421.1"
+Target_seq_name=Chrosome_ID
 #Input: dataset name for WIG header.
-Dataset_name="BK010421.1_Cfx_0.01"
+Dataset_name=f"{Chrosome_ID}_Cfx_0.01"
 
 #Output: prefix of the output path.
 Output_data_prefix="C:\\Users\sutor\OneDrive\\ThinkPad_working\Sutor\Science\Arabidopsis_gyrase\Sequencing_results\\NUMT_masked\Consensus_sequence_construction_and_scanning\\"

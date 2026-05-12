@@ -36,19 +36,25 @@ Transcription_data_path={'HEG_50'        : os.path.join(PWD, 'Genes', 'AP000423.
                          }
 
 # Genome length, bp.
-Genome_len=154478     # A. thaliana chloroplast genome: 154478 bp, A. thaliana mitochondrial genome: 367808 bp
+Genome_len=154478     # A. thaliana chloroplast genome (AP000423.1): 154478 bp, A. thaliana mitochondrial genome (BK010421.1): 367808 bp
 
 # Output path.
-Output_path=os.path.join(PWD, "Gene_body_IGR_analysis", "AP000423.1")
+Output_path=os.path.join(PWD, "Gene_body_IGR_analysis_test", "AP000423.1")
 if not os.path.isdir(Output_path):
     os.mkdir(Output_path) 
+    
+# Output file with statistics.
+Output_stat_file_path=os.path.join(Output_path, 'GCSs_stat_in_GB_and_IGR.txt')
     
     
 #######
 #Trusted GCSs data parsing.
 #######
 
-def trusted_GCSs_parsing(input_dict):
+def trusted_GCSs_parsing(input_dict, output_stat_file_path):
+    
+    fileout=open(output_stat_file_path, 'w')
+    
     GCSs_sets_dict={}
     for k, v in input_dict.items():
         ar=[]
@@ -60,7 +66,11 @@ def trusted_GCSs_parsing(input_dict):
             else:
                 continue
         GCSs_sets_dict[k]=ar
-        print('Number of trusted GCSs for ' + str(k) + ' : ' + str(len(ar)))
+        
+        print(f'Number of trusted GCSs for {k} : {len(ar)}')
+        fileout.write(f'Number of trusted GCSs for {k} : {len(ar)}\n')
+        
+    fileout.close()
         
     return GCSs_sets_dict  
 
@@ -69,7 +79,9 @@ def trusted_GCSs_parsing(input_dict):
 #Parsing genes data.
 #######
 
-def TUs_parser(TUs_sets_path):
+def TUs_parser(TUs_sets_path, output_stat_file_path):
+    
+    fileout=open(output_stat_file_path, 'a+')
     
     TUs_sets={}
     TUs_mean_len_dict={}
@@ -101,13 +113,18 @@ def TUs_parser(TUs_sets_path):
         TUs_mean_len_dict[k]=np.mean(TU_len_ar)
         
         print(f'Number of TUs in forward for {k} set: {plus}')
+        fileout.write(f'Number of TUs in forward for {k} set: {plus}\n')
         print(f'Number of TUs in reverse for {k} set: {minus}')
+        fileout.write(f'Number of TUs in reverse for {k} set: {minus}\n')
         print(f'Mean length of TUs {k} set: {np.mean(TU_len_ar)}')
+        fileout.write(f'Mean length of TUs {k} set: {np.mean(TU_len_ar)}\n')
+        
+    fileout.close()
         
     return TUs_sets, TUs_mean_len_dict
 
 
-def TU_IGR_association(GSCs_data_dict, gene_set_data, output_path, gene_set_name, genome_len):
+def TU_IGR_association(GSCs_data_dict, gene_set_data, output_stat_file_path, gene_set_name, genome_len):
     
     GCSs_genes_and_IGR_assoc_norm_kb={}
     
@@ -125,8 +142,12 @@ def TU_IGR_association(GSCs_data_dict, gene_set_data, output_path, gene_set_name
     GCSs_genes_and_IGR_assoc_norm_kb["Genes_len"]=Sum_gene_len
     GCSs_genes_and_IGR_assoc_norm_kb["IGR_len"]=Sum_IGR_len
     
+    fileout=open(output_stat_file_path, 'a+')
+    
     print(f'Total length of gene bodies for {gene_set_name}: {Sum_gene_len} bp')
+    fileout.write(f'Total length of gene bodies for {gene_set_name}: {Sum_gene_len} bp\n')
     print(f'Total length of IGRs for {gene_set_name}: {Sum_IGR_len} bp')
+    fileout.write(f'Total length of IGRs for {gene_set_name}: {Sum_IGR_len} bp\n')
     
     for GCSs_set, GSCs_ar in GSCs_data_dict.items():
         
@@ -141,22 +162,30 @@ def TU_IGR_association(GSCs_data_dict, gene_set_data, output_path, gene_set_name
                 IGR_GCSs_num+=1
                 
         print(f'Number of GCSs {GCSs_set} observed in gene bodies for {gene_set_name}: {Gene_GCSs_num}')
+        fileout.write(f'Number of GCSs {GCSs_set} observed in gene bodies for {gene_set_name}: {Gene_GCSs_num}\n')
         print(f'Number of GCSs {GCSs_set} observed in IGRs for {gene_set_name}: {IGR_GCSs_num}')
+        fileout.write(f'Number of GCSs {GCSs_set} observed in IGRs for {gene_set_name}: {IGR_GCSs_num}\n')
         
         Gene_GCSs_num_per_kb=Gene_GCSs_num/(Sum_gene_len/1000)
         IGR_GCSs_num_per_kb=IGR_GCSs_num/(Sum_IGR_len/1000)
         
         print(f'Number of GCSs {GCSs_set} per kb observed in gene bodies for {gene_set_name}: {Gene_GCSs_num_per_kb}/kb')
+        fileout.write(f'Number of GCSs {GCSs_set} per kb observed in gene bodies for {gene_set_name}: {Gene_GCSs_num_per_kb}/kb\n')
         print(f'Number of GCSs {GCSs_set} per kb observed in IGRs for {gene_set_name}: {IGR_GCSs_num_per_kb}/kb')  
+        fileout.write(f'Number of GCSs {GCSs_set} per kb observed in IGRs for {gene_set_name}: {IGR_GCSs_num_per_kb}/kb\n')
         
         print(f'Statistics for GCSs {GCSs_set} observed in gene bodies for {gene_set_name}: {binom.cdf(Gene_GCSs_num, len(GSCs_ar), Sum_gene_len/genome_len)}')
+        fileout.write(f'Statistics for GCSs {GCSs_set} observed in gene bodies for {gene_set_name}: {binom.cdf(Gene_GCSs_num, len(GSCs_ar), Sum_gene_len/genome_len)}\n')
         print(f'Statistics for GCSs {GCSs_set} observed in IGRs for {gene_set_name}: {binom.cdf(IGR_GCSs_num, len(GSCs_ar), Sum_IGR_len/genome_len)}')
+        fileout.write(f'Statistics for GCSs {GCSs_set} observed in IGRs for {gene_set_name}: {binom.cdf(IGR_GCSs_num, len(GSCs_ar), Sum_IGR_len/genome_len)}\n')
         
         GCSs_genes_and_IGR_assoc_norm_kb[GCSs_set]={"Gene_GCS_num" : Gene_GCSs_num, 
                                                     "IGR_GCS_num" : IGR_GCSs_num,
                                                     "Gene_GCS_num_per_kb" : Gene_GCSs_num_per_kb, 
                                                     "IGR_GCS_num_per_kb" : IGR_GCSs_num_per_kb,}
         
+    fileout.close()
+    
     return GCSs_genes_and_IGR_assoc_norm_kb
 
 
@@ -164,28 +193,21 @@ def TU_IGR_association(GSCs_data_dict, gene_set_data, output_path, gene_set_name
 #Wrapper function.
 #######
 
-def wrapper_func(path_to_GCSs_files, transcription_data_path, genome_len, output_path):
+def wrapper_func(path_to_GCSs_files, transcription_data_path, genome_len, output_stat_file_path):
     
     # Read GCSs data.
-    GSCs_data_dict=trusted_GCSs_parsing(path_to_GCSs_files)
+    GSCs_data_dict=trusted_GCSs_parsing(path_to_GCSs_files, output_stat_file_path)
     
     # Read TUs data.
-    TUs_data_dict, TUs_mean_len_dict=TUs_parser(transcription_data_path)
+    TUs_data_dict, TUs_mean_len_dict=TUs_parser(transcription_data_path, output_stat_file_path)
     
     # Genes-association analysis.
     GCSs_num_norm_kb_dict={}
     for gene_set_name, gene_set_data in TUs_data_dict.items():
-        GCSs_genes_and_IGR_assoc_norm_kb=TU_IGR_association(GSCs_data_dict, gene_set_data, output_path, gene_set_name, genome_len)
+        GCSs_genes_and_IGR_assoc_norm_kb=TU_IGR_association(GSCs_data_dict, gene_set_data, output_stat_file_path, gene_set_name, genome_len)
         GCSs_num_norm_kb_dict[gene_set_name]=GCSs_genes_and_IGR_assoc_norm_kb
-        
-        #TU_interval_stat_analysis(GSCs_data_dict, GCSs_all_genes_assoc_info, gene_set_data, window_width, 'genes', output_path, gene_set_name, genome_len)
-        #GCSs_set_exp_interval_dict_ag=GCSs_number_norm(GCSs_all_genes_assoc_info, GSCs_data_dict, genome_len)
-        #write_GCSs_norm(GCSs_set_exp_interval_dict_ag, output_path, gene_set_name)    
-    
-    # Plot normalized numbers of GCSs associated with US, GB, DS regions.
-    #plot_GCSs_numbers(GCSs_num_norm_kb_dict, output_path)
     
     return
     
-wrapper_func(Path_to_GCSs_files, Transcription_data_path, Genome_len, Output_path)
+wrapper_func(Path_to_GCSs_files, Transcription_data_path, Genome_len, Output_stat_file_path)
 

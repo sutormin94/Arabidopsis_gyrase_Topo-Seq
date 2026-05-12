@@ -25,23 +25,27 @@ from scipy.stats import binom
 PWD="C:\\Users\sutor\OneDrive\ThinkPad_working\Sutor\Science\Arabidopsis_gyrase\Sequencing_results\Final_tracks\\"
 
 # Input data - GCSs, TAB.
-Path_to_GCSs_files={'Cfx 0.01': os.path.join(PWD, "BK010421.1_Trusted_GCSs_0.01.BroadPeak"),
-                    'Cfx 0.05': os.path.join(PWD, "BK010421.1_Trusted_GCSs_0.05.BroadPeak"),
+Path_to_GCSs_files={'Cfx 0.01': os.path.join(PWD, "AP000423.1_Trusted_GCSs_0.01.BroadPeak"),
+                    'Cfx 0.05': os.path.join(PWD, "AP000423.1_Trusted_GCSs_0.05.BroadPeak"),
                     }
 
 # Input data - genes, TAB.
-Transcription_data_path={'HEG_25'        : os.path.join(PWD, 'Genes', 'BK010421.1_no_exon_HETU_25.bed'),
-                         'All_genes_61'  : os.path.join(PWD, 'Genes', 'BK010421.1_no_exon.bed'),
-                         'LEG_25'        : os.path.join(PWD, 'Genes', 'BK010421.1_no_exon_LETU_25.bed'),
+Transcription_data_path={'HEG_50'        : os.path.join(PWD, 'Genes', 'AP000423.1_no_exon_HETU_50.bed'),
+                         'All_genes_133'  : os.path.join(PWD, 'Genes', 'AP000423.1_no_exon.bed'),
+                         'LEG_50'        : os.path.join(PWD, 'Genes', 'AP000423.1_no_exon_LETU_50.bed'),
                          }
 
 # Genome length, bp.
-Genome_len=154478
+Genome_len=154478       # A. thaliana chloroplast genome (AP000423.1): 154478 bp, A. thaliana mitochondrial genome (BK010421.1): 367808 bp
 
 # Output path.
-Output_path=os.path.join(PWD, "US_GB_DS_analysis", "BK010421.1")
+Output_path=os.path.join(PWD, "US_GB_DS_analysis_test", "AP000423.1")
 if not os.path.isdir(Output_path):
     os.mkdir(Output_path)  
+    
+
+# Output file with statistics.
+Output_stat_file_path=os.path.join(Output_path, 'GCSs_stat_in_US_GB_DS.txt')  
     
     
     
@@ -49,7 +53,10 @@ if not os.path.isdir(Output_path):
 #Trusted GCSs data parsing.
 #######
 
-def trusted_GCSs_parsing(input_dict):
+def trusted_GCSs_parsing(input_dict, output_stat_file_path):
+    
+    fileout=open(output_stat_file_path, 'w')
+    
     GCSs_sets_dict={}
     for k, v in input_dict.items():
         ar=[]
@@ -61,7 +68,11 @@ def trusted_GCSs_parsing(input_dict):
             else:
                 continue
         GCSs_sets_dict[k]=ar
-        print('Number of trusted GCSs for ' + str(k) + ' : ' + str(len(ar)))
+        
+        print(f'Number of trusted GCSs for {k} : {len(ar)}')
+        fileout.write(f'Number of trusted GCSs for {k} : {len(ar)}\n')
+        
+    fileout.close()        
         
     return GCSs_sets_dict  
   
@@ -70,7 +81,9 @@ def trusted_GCSs_parsing(input_dict):
 #Parsing genes data.
 #######
 
-def TUs_parser(TUs_sets_path):
+def TUs_parser(TUs_sets_path, output_stat_file_path):
+    
+    fileout=open(output_stat_file_path, 'a+')
     
     TUs_sets={}
     TUs_mean_len_dict={}
@@ -102,10 +115,16 @@ def TUs_parser(TUs_sets_path):
         TUs_mean_len_dict[k]=np.mean(TU_len_ar)
         
         print(f'Number of TUs in forward for {k} set: {plus}')
+        fileout.write(f'Number of TUs in forward for {k} set: {plus}\n')
         print(f'Number of TUs in reverse for {k} set: {minus}')
+        fileout.write(f'Number of TUs in reverse for {k} set: {minus}\n')
         print(f'Mean length of TUs {k} set: {np.mean(TU_len_ar)}')
+        fileout.write(f'Mean length of TUs {k} set: {np.mean(TU_len_ar)}\n')
+        
+    fileout.close()
         
     return TUs_sets, TUs_mean_len_dict
+
 
 #######
 #GCSs association with TUs.
@@ -114,30 +133,38 @@ def TUs_parser(TUs_sets_path):
 def TU_association(GCSs_sets_dict, TU_set, set_type, window_width, path_out, set_name):
     
     fileout=open(os.path.join(path_out, f'{set_name}_numbers_of_associated_GCSs.txt'), 'w')
+    
     if set_type=='genes':
+        
         fileout.write("Gene_ID\tGenes_ID\tStart\tEnd\tStrand\tExpression\t") 
         for k in range(len(GCSs_sets_dict)):
             fileout.write("Condition\tGCSs in US\tGCSs in GB\tGCSs in DS\t")
         fileout.write("\n")
+        
     else:
+        
         print('Unknown type of the set! Possible types: 16S_operons, operons, genes.')
+        
         return
     
     operons_stat_norm_kb={}
-    operons_stat_ds={} #{condition : [number of GCSs, mean N3E, mean score, len of regions]}
+    operons_stat_ds={}          #{condition : [number of GCSs, mean N3E, mean score, len of regions]}
     ds_regions_len=0
     
-    for j in TU_set: #j - particular operon info (dictionary)  
+    for j in TU_set: #j - particular gene/operon info (dictionary). Iterates over TUs.
+        
         fileout.write(j['TUID'] + '\t' + j['TU name'] + '\t' + str(j['Start']) + '\t' + str(j['End']) + '\t' + j['Strand'] + '\t' + str(j['Transcription level']) + '\t')      
         ds_regions_len+=window_width
-        for a, s in GCSs_sets_dict.items(): #a - Topo-Seq condition, s - corresponding set of GCSs.
+        
+        for a, s in GCSs_sets_dict.items(): #a - Topo-Seq condition, s - corresponding set of GCSs. Iterates over Topo-Seq conditions.
+            
             if a not in operons_stat_ds:
                 if set_type=='genes':
-                    operons_stat_ds[a]=[0, [], [], 0, [], [], 0, [], []] #[number of GCSs, N3E values, score values] for US, GB, DS correspondingly.
+                    operons_stat_ds[a]=[0, [], [], 0, [], [], 0, [], []]    #[number of GCSs, N3E values, score values] for US, GB, DS correspondingly.
             fileout.write(a + '\t')
             stats=[0, 0, 0, 0, 0] #USUS USGB GB GBDS DSDS
 
-            for k in s: 
+            for k in s:   # Iterate over GCS coordinates.
                 if j['Start']+window_width>k>j['Start'] and j['Strand']=='-': #GBDS
                     stats[3]+=1
                   
@@ -166,7 +193,7 @@ def TU_association(GCSs_sets_dict, TU_set, set_type, window_width, path_out, set
                     stats[2]+=1
 
             if set_type=='genes':
-                fileout.write(str(stats[0]) + '\t' + str(stats[2]) + '\t' + str(stats[4]) + '\t') #US, GB, DS
+                fileout.write(str(stats[0]) + '\t' + str(stats[2]) + '\t' + str(stats[4]) + '\t') #USUA, GB, DSDS.
                 #US
                 operons_stat_ds[a][0]+=stats[0]
                 #GB
@@ -267,6 +294,7 @@ def GCSs_number_norm(intervals_GCSs_dict, GCSs_sets_dict, genome_len):
 #######
 
 def write_GCSs_norm(GCSs_set_exp_interval_dict, path_out, set_name):
+    
     fileout=open(os.path.join(path_out, f'{set_name}_normalized_GCSs_numbers_and_statistics.txt'), 'w')
     fileout.write('Condition\tCompartment\tNumber of GCSs expected\tNumber of GCSs observed\tp-value\tNumber of GCSs normalized\n')
     Compartment_names=['US', 'GB', 'DS']
@@ -275,6 +303,7 @@ def write_GCSs_norm(GCSs_set_exp_interval_dict, path_out, set_name):
         for i in range(len(Compartment_names)):
             fileout.write(a + '\t' + Compartment_names[i] + '\t' + str(round(s[0],3)) + '\t' + str(s[(i*3)+1]) + '\t' + str(s[(i*3)+2]) + '\t' + str(round(s[(i*3)+3],3)) +'\n')
     fileout.close()
+    
     return
 
 
@@ -322,10 +351,12 @@ def simple_beeswarm(y, nbins=None): # Taken from https://stackoverflow.com/quest
     return x
 
 
-def plot_GCSs_numbers(GCSs_num_norm_kb_dict, output_path):
+def plot_GCSs_numbers(GCSs_num_norm_kb_dict, output_path, output_stat_file_path):
     
-    Topo_Seq_conditions_list=list(GCSs_num_norm_kb_dict[list(GCSs_num_norm_kb_dict.keys())[0]].keys())
+    fileout=open(output_stat_file_path, 'a+')
+    
     Genes_sets_list=list(GCSs_num_norm_kb_dict.keys())
+    Topo_Seq_conditions_list=list(GCSs_num_norm_kb_dict[Genes_sets_list[0]].keys())
     
     segments_ar=['US', 'GB', 'DS']
     color_ar=['#77d96a', '#3ec1db', '#de7976']
@@ -348,10 +379,14 @@ def plot_GCSs_numbers(GCSs_num_norm_kb_dict, output_path):
             
             gene_set_data=GCSs_data_dict[Topo_condition]
             
-            print(Topo_condition, gene_set)
-            print(np.mean(gene_set_data[0]))
-            print(np.mean(gene_set_data[1]))
-            print(np.mean(gene_set_data[2]))
+            print(f'Topo-Seq condition and a gene group: {Topo_condition}, {gene_set}')
+            fileout.write(f'Topo-Seq condition and a gene group: {Topo_condition}, {gene_set}\n')
+            print(f'US GCS/kb mean density: {np.mean(gene_set_data[0])}')
+            fileout.write(f'US GCS/kb mean density: {np.mean(gene_set_data[0])}\n')
+            print(f'GB GCS/kb mean density: {np.mean(gene_set_data[1])}')
+            fileout.write(f'GB GCS/kb mean density: {np.mean(gene_set_data[1])}\n')
+            print(f'DS GCS/kb mean density: {np.mean(gene_set_data[2])}')
+            fileout.write(f'DS GCS/kb mean density: {np.mean(gene_set_data[2])}\n')
             
             if i!=2:
                 plot.bar(coords_ar[(i*3)+0], np.mean(gene_set_data[0]), color=color_ar[0], edgecolor='k')
@@ -401,7 +436,10 @@ def plot_GCSs_numbers(GCSs_num_norm_kb_dict, output_path):
                         ttest_res=stats.ttest_ind(set_1, set_2)
                             
                         print(f'{Topo_condition} {gene_set_1} {segments_ar[i]} vs {gene_set_2} {segments_ar[j]}: {ttest_res}')
+                        fileout.write(f'{Topo_condition} {gene_set_1} {segments_ar[i]} vs {gene_set_2} {segments_ar[j]}: {ttest_res}\n')
                         
+    fileout.close()
+    
     return
     
     
@@ -409,27 +447,29 @@ def plot_GCSs_numbers(GCSs_num_norm_kb_dict, output_path):
 #Wrapper function.
 #######
 
-def wrapper_func(path_to_GCSs_files, transcription_data_path, genome_len, output_path):
+def wrapper_func(path_to_GCSs_files, transcription_data_path, genome_len, output_path, output_stat_file_path):
     
     # Read GCSs data.
-    GSCs_data_dict=trusted_GCSs_parsing(path_to_GCSs_files)
+    GSCs_data_dict=trusted_GCSs_parsing(path_to_GCSs_files, output_stat_file_path)
     
     # Read TUs data.
-    TUs_data_dict, TUs_mean_len_dict=TUs_parser(transcription_data_path)
+    TUs_data_dict, TUs_mean_len_dict=TUs_parser(transcription_data_path, output_stat_file_path)
     
     # Genes-association analysis.
     GCSs_num_norm_kb_dict={}
     for gene_set_name, gene_set_data in TUs_data_dict.items():
+        
         window_width=TUs_mean_len_dict[gene_set_name]
         GCSs_all_genes_assoc_info, GCSs_all_genes_assoc_norm_kb=TU_association(GSCs_data_dict, gene_set_data, 'genes', window_width, output_path, gene_set_name)
         GCSs_num_norm_kb_dict[gene_set_name]=GCSs_all_genes_assoc_norm_kb
+        
         TU_interval_stat_analysis(GSCs_data_dict, GCSs_all_genes_assoc_info, gene_set_data, window_width, 'genes', output_path, gene_set_name, genome_len)
         GCSs_set_exp_interval_dict_ag=GCSs_number_norm(GCSs_all_genes_assoc_info, GSCs_data_dict, genome_len)
         write_GCSs_norm(GCSs_set_exp_interval_dict_ag, output_path, gene_set_name)    
     
     # Plot normalized numbers of GCSs associated with US, GB, DS regions.
-    plot_GCSs_numbers(GCSs_num_norm_kb_dict, output_path)
+    plot_GCSs_numbers(GCSs_num_norm_kb_dict, output_path, output_stat_file_path)
     
     return
     
-wrapper_func(Path_to_GCSs_files, Transcription_data_path, Genome_len, Output_path)
+wrapper_func(Path_to_GCSs_files, Transcription_data_path, Genome_len, Output_path, Output_stat_file_path)
